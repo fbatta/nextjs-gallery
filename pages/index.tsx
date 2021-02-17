@@ -19,6 +19,26 @@ export default function Home(props: ServerSideProps) {
   const hasFolders = props.directories && props.directories.length > 0;
   const hasImages = props.images && props.images.length > 0;
 
+  if (hasError) {
+    return (
+      <>
+        {/* add stuff to head */}
+        <Head>
+          <title>Gallery</title>
+        </Head>
+        <Center mt={4}>
+          <Heading>Gallery</Heading>
+        </Center>
+        <Flex h="xl" alignItems="center" justifyContent="center" flexDirection="column">
+          <Heading as="h2" size="lg" color="gray.400">Error: {props.error}</Heading>
+          <Link href="/">
+            <Button mt={4} colorScheme="purple" rounded="full">Home</Button>
+          </Link>
+        </Flex>
+      </>
+    );
+  }
+
   return (
     <Fragment>
       {/* add stuff to head */}
@@ -44,8 +64,8 @@ export default function Home(props: ServerSideProps) {
       <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }} m={4} gap={6}>
         {/* list all folders first */}
         {hasFolders ?
-          props.directories.map(dir => (
-            <FolderGridItem directoryPath={dir} currentDirectoryPath={props.currentDirectoryPath} />
+          props.directories.map((dir, idx) => (
+            <FolderGridItem key={idx} directoryPath={dir} currentDirectoryPath={props.currentDirectoryPath} />
           )) : null}
         {hasImages ?
           props.images.map((image, idx) => {
@@ -60,7 +80,7 @@ export default function Home(props: ServerSideProps) {
               nextImageName = props.images[idx + 1];
             }
             return (
-              <ImageGridItem directoryPath={props.currentDirectoryPath} imageName={image} previousImageName={previousImageName} nextImageName={nextImageName} />
+              <ImageGridItem key={idx} directoryPath={props.currentDirectoryPath} imageName={image} previousImageName={previousImageName} nextImageName={nextImageName} />
             );
           })
           : null}

@@ -18,13 +18,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         // full path
         const fullPath = join(basePath, directoryPath);
+        // do not allow listing parent directories with ..
+        const isParent = (/\.{2}/g).test(directoryPath);
+        // if it's a directory and it's not hidden...
+        if (isParent) {
+            res.json({ error: 'cannot_list_parent_directories' });
+            return;
+        }
         const filesList = await promises.readdir(fullPath);
         // filter only directories
         const directoriesList = filesList.filter((file) => {
             const fileStat = lstatSync(join(fullPath, file));
             const isDirectory = fileStat.isDirectory();
             const isHidden = (/(^|\/)\.[^\/\.]/g).test(file);
-            // if it's a directory and it's not hidden...
             if (isDirectory && !isHidden) {
                 return file;
             }
