@@ -48,7 +48,7 @@ export default function Home(props: ServerSideProps) {
       <Center mt={4}>
         <Heading>Gallery</Heading>
       </Center>
-      <Box>
+      <Box m={4}>
         <GalleryBreadcrumb directoryPath={props.currentDirectoryPath} />
       </Box>
 
