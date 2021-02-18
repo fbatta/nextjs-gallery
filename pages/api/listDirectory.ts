@@ -7,7 +7,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     // base path is assumed to be 'public'
     const basePath = join(cwd(), 'public');
     // get the path of the directory we want to list files for
-    const { directoryPath } = req.body;
+    const { directoryPath, password } = req.body;
 
     // error if directoryPath is not a string
     if (!directoryPath || typeof directoryPath !== 'string') {
@@ -26,6 +26,26 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             return;
         }
         const filesList = await promises.readdir(fullPath);
+        // check if fodler contains a .password file
+        if (filesList.indexOf('.password') !== - 1) {
+            // send a request for password if no password provided
+            if (!password) {
+                res.json({
+                    passwordRequired: true,
+                });
+                return;
+            }
+            // read contents of .password file
+            const folderPassword = await promises.readFile(filesList[filesList.indexOf('.password')], { encoding: 'utf8' });
+            console.log(folderPassword);
+            if (password !== folderPassword) {
+                res.json({
+                    passwordRequired: true,
+                    error: 'invalid_password',
+                });
+                return;
+            }
+        }
         // filter only directories
         const directoriesList = filesList.filter((file) => {
             const fileStat = lstatSync(join(fullPath, file));

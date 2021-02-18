@@ -1,8 +1,9 @@
 import { GetServerSidePropsContext } from 'next';
+import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from 'next/head';
-import { Fragment } from "react";
-import { Center, Heading, Grid, Flex, Button, Box } from "@chakra-ui/react";
+import { Fragment, useState } from "react";
+import { Center, Heading, Grid, Flex, Button, Box, Input } from "@chakra-ui/react";
 import { FolderGridItem } from '../components/folderGridItem';
 import { ImageGridItem } from "../components/imageGridItem";
 import { GalleryBreadcrumb } from '../components/breadcrumb';
@@ -12,12 +13,22 @@ interface ServerSideProps {
   error?: string;
   directories?: string[];
   images?: string[];
+  passwordRequired?: boolean;
 }
 
 export default function Home(props: ServerSideProps) {
   const hasError = props.error && true;
   const hasFolders = props.directories && props.directories.length > 0;
   const hasImages = props.images && props.images.length > 0;
+
+  const [password, setPassword] = useState('');
+
+  const router = useRouter();
+  const submitPassword = (e) => {
+    if (!e || e.code === 'Enter') {
+      router.push(`/?directoryPath=${props.currentDirectoryPath}&password=${password}`);
+    }
+  }
 
   if (hasError) {
     return (
@@ -34,6 +45,29 @@ export default function Home(props: ServerSideProps) {
           <Link href="/">
             <Button mt={4} colorScheme="purple" rounded="full">Home</Button>
           </Link>
+        </Flex>
+      </>
+    );
+  }
+
+  if (props.passwordRequired) {
+    return (
+      <>
+        {/* add stuff to head */}
+        <Head>
+          <title>Gallery</title>
+        </Head>
+        <Center mt={4}>
+          <Heading>Gallery</Heading>
+        </Center>
+        <Flex h="xl" alignItems="center" justifyContent="center" flexDirection="column">
+          <Heading as="h2" size="lg" color="gray.400">Please enter password</Heading>
+          <Box maxW="lg" mt={4}>
+            <Input placeholder="Password" size="lg" id="password" colorScheme="purple" onChange={(e) => {
+              setPassword(e.target.value);
+            }} onKeyPress={submitPassword} />
+          </Box>
+          <Button mt={4} colorScheme="purple" rounded="full">Enter</Button>
         </Flex>
       </>
     );
@@ -91,7 +125,7 @@ export default function Home(props: ServerSideProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   // get path of the directory to list from query
-  let { directoryPath } = context.query;
+  let { directoryPath, password } = context.query;
   if (!directoryPath) {
     directoryPath = '/';
   }
@@ -104,6 +138,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     body: JSON.stringify({
       directoryPath: directoryPath,
+      password: password,
     }),
   });
   if (res.status === 200) {
